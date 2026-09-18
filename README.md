@@ -1,230 +1,137 @@
-# 🎮 Grammar Adventure
-
-🎓 Juego educativo interactivo desarrollado con Python y Pygame para aprender gramática inglesa de manera divertida 🎯📚, featuring 4 capítulos temáticos (Simple Past, Comparatives, Present Perfect, Future) 📖⚡ con sistema de puntuación progresivo 🏆, velocidad adaptativa 🚀 y feedback inmediato 🎵. Interfaz pixel art retro 🎨 con mecánicas de typing game 💨 optimizada para el aprendizaje interactivo y la mejora de habilidades lingüísticas 🌟.
-
 <div align="center">
-
-![Grammar Adventure Logo](Grammar%20Adventure/Material/Logo.jpg)
-
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Pygame](https://img.shields.io/badge/Pygame-2.0+-green.svg)](https://www.pygame.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
-[![Game](https://img.shields.io/badge/Game-Educational-purple.svg)](#)
-
-[🎯 Características](#-características) • [🚀 Instalación](#-instalación) • [🎮 Cómo Jugar](#-cómo-jugar) • [📚 Temas](#-temas-disponibles) • [🛠️ Desarrollo](#️-desarrollo)
-
+  <img src="docs/assets/logo.svg" width="96" alt="Logo de Grammar Adventure" />
+  <h1>Grammar Adventure</h1>
+  <p><b>Juego de escritura en pixel art para practicar gramática inglesa: completa la frase antes de que cruce la pantalla.</b></p>
+  <img src="https://img.shields.io/badge/estado-funcional%20(prototipo)-8b5cf6?style=for-the-badge" alt="Estado: funcional (prototipo)" />
+  <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/pygame-2.x-22c55e?style=for-the-badge" alt="pygame" />
+  <img src="https://img.shields.io/badge/plataforma-Windows-0078D6?style=for-the-badge" alt="Plataforma: Windows" />
+  <img src="https://img.shields.io/badge/tests-0-lightgrey?style=for-the-badge" alt="Tests: ninguno" />
+  <img src="https://img.shields.io/badge/licencia-MIT-yellow?style=for-the-badge" alt="Licencia MIT" />
+  <p>
+    <a href="#-inicio-rápido">Inicio rápido</a> ·
+    <a href="#-características">Características</a> ·
+    <a href="#-arquitectura">Arquitectura</a> ·
+    <a href="#-pruebas">Pruebas</a> ·
+    <a href="#-lo-que-todavía-no-existe">Limitaciones</a>
+  </p>
 </div>
 
----
+**Grammar Adventure** es un juego de escritorio hecho con Python y pygame (800x600). Muestra frases en inglés con una
+palabra (o varias) omitida que se desplazan de izquierda a derecha; el jugador escribe la respuesta y, si acierta, la
+frase desaparece y suma un punto. Es un **prototipo educativo de un solo archivo**: no tiene menú de dificultad, guardado
+de puntuaciones, tests ni instalador, y **solo funciona bien en Windows** (ver limitaciones).
 
-## 📋 Descripción
+## 🎬 Vista rápida
 
-**Grammar Adventure** es un juego educativo desarrollado en Python con Pygame que te ayuda a mejorar tus habilidades en gramática inglesa de manera divertida e interactiva. El juego presenta diferentes niveles temáticos donde debes completar oraciones con la palabra correcta antes de que desaparezcan de la pantalla.
+Capturas reales tomadas ejecutando el propio juego (renderizado sin ventana con `SDL_VIDEODRIVER=dummy`).
 
-### 🎯 Características
+<div align="center">
+  <img src="docs/screenshots/menu.png" width="400" alt="Menú principal con el logo Grammar Adventure y los botones Rules y Play the Game" />
+  <img src="docs/screenshots/capitulos.png" width="400" alt="Pantalla de selección de los cuatro capítulos" />
+  <img src="docs/screenshots/reglas.png" width="400" alt="Pantalla de reglas del juego" />
+  <img src="docs/screenshots/juego.png" width="400" alt="Partida en el capítulo Present Perfect con una frase avanzando y tres vidas" />
+</div>
 
-- 🎨 **Interfaz gráfica atractiva** con estilo pixel art
-- 🎵 **Efectos de sonido inmersivos** para cada acción
-- 📈 **Sistema de puntuación progresivo** con dificultad incremental
-- ❤️ **Sistema de vidas** con 3 oportunidades por partida
-- 🎪 **4 capítulos temáticos** diferentes de gramática inglesa
-- ⚡ **Velocidad adaptativa** que aumenta con tu progreso
-- 🏆 **Feedback inmediato** con sonidos de éxito y error
+## ✨ Características
 
-## 🚀 Instalación
+| Característica | Detalle |
+|---|---|
+| 4 capítulos | Simple Past (31 frases), Comparatives and Superlatives (29), Present Perfect (28) y Future with will / going to (28): 116 frases en total, definidas en el diccionario `temas`. |
+| Escritura libre | Se teclea la respuesta; al coincidir exactamente (sin distinguir mayúsculas) con la palabra esperada, la frase se elimina y se suma 1 punto. No hace falta pulsar Enter. |
+| Dificultad progresiva | Velocidad `0.4 + puntuación/50` píxeles por fotograma y `puntuación // 8 + 1` frases simultáneas. |
+| Vidas | 3 corazones; se pierde una por cada frase que sale por el borde derecho. |
+| Sin repetición inmediata | `nueva_frase` evita repetir las últimas 10 frases mostradas. |
+| Audio y arte | Música distinta por capítulo (`Stage1`-`Stage4.wav`), efectos de acierto/error, fondo pixel art por capítulo y fuentes TTF incluidas. |
+| Extras de partida | Cronómetro (`Time:`) y puntuación visibles; `ESC` termina la partida y muestra "Game Over!". |
 
-### Prerrequisitos
+## 🏗️ Arquitectura
 
-- Python 3.8 o superior
-- pip (gestor de paquetes de Python)
+Todo el juego vive en `Grammar Adventure.py` (596 líneas) con estado global y una función por pantalla.
 
-### Pasos de instalación
+```mermaid
+flowchart TD
+    A["Inicio: pygame.init + carga de sonidos e imágenes"] --> B["ventana_principal()"]
+    B -->|"Rules"| C["mostrar_reglas()"]
+    C -->|"Volver"| B
+    B -->|"Play the Game"| D["menu_niveles()"]
+    D -->|"elige un capítulo"| E["bucle_juego()"]
+    E -->|"nueva_frase(tema)"| F["Frases del diccionario temas"]
+    E -->|"0 vidas o ESC"| G["game_over()"]
+    G -->|"reinicia puntos y vidas"| D
+```
 
-1. **Clona el repositorio**
+<details>
+<summary>Estructura de carpetas</summary>
+
+```
+Grammar-Adventure/
+├── Grammar Adventure.py        # Juego (versión de la raíz; fuente en Font/ relativa a la raíz)
+├── Font/                       # Pixellettersfull-BnJ5.ttf y Pixelletters-RLm3.ttf
+├── Material/                   # Copia de los recursos en la raíz (el juego NO la usa)
+├── Grammar Adventure/          # Copia anidada: script + Font/ + Material/ (el juego lee de aquí)
+├── docs/assets/logo.svg        # Logo del README
+├── docs/screenshots/           # Capturas reales
+└── LICENSE                     # MIT
+```
+
+El script de la raíz carga la música y las imágenes desde `Grammar Adventure/Material` y la fuente desde
+`Font/` (ambas rutas relativas al directorio desde donde se ejecuta). Existe además una copia casi idéntica
+dentro de `Grammar Adventure/` que usa `Grammar Adventure\Font\...` para la fuente.
+
+</details>
+
+## 🚀 Inicio rápido
+
+| Requisito | Versión |
+|---|---|
+| Sistema | Windows (las rutas usan `\`; ver limitaciones) |
+| Python | 3.x reciente (probado aquí con 3.14) |
+| pygame | 2.x (probado con `pygame-ce` 2.5.7) |
+
+1. Clona el repositorio (pesa ~100 MB por los `.wav` incluidos):
    ```bash
-   git clone https://github.com/tu-usuario/grammar-adventure.git
-   cd grammar-adventure
+   git clone https://github.com/Luiss2080/Grammar-Adventure.git
+   cd Grammar-Adventure
    ```
-
-2. **Instala las dependencias**
+2. Instala pygame (no hay `requirements.txt`):
    ```bash
    pip install pygame
    ```
-
-3. **Ejecuta el juego**
+3. Ejecuta **desde la raíz del repositorio** (las rutas son relativas al directorio actual):
    ```bash
    python "Grammar Adventure.py"
    ```
 
-### 📦 Estructura del proyecto
+Controles: ratón para los botones; teclado para escribir la respuesta; `Backspace` borra; `ESC` termina la partida.
 
-```
-Grammar Adventure/
-├── Grammar Adventure.py          # Archivo principal del juego
-├── Font/                        # Fuentes personalizadas
-│   ├── Pixelletters-RLm3.ttf
-│   └── Pixellettersfull-BnJ5.ttf
-├── Material/                    # Recursos del juego
-│   ├── *.png                   # Imágenes y sprites
-│   ├── *.jpg                   # Fondos y gráficos
-│   └── *.wav                   # Efectos de sonido
-└── README.md                   # Este archivo
-```
+## 🧪 Pruebas
 
-## 🎮 Cómo Jugar
+No hay pruebas automáticas (badge de tests en 0 a propósito). Verificación manual realizada al preparar este README:
+el script se importó y ejecutó con `SDL_VIDEODRIVER=dummy` y se renderizaron el menú, las reglas, la selección de
+capítulos y un fotograma de partida, que son las capturas de arriba.
 
-### 🎯 Objetivo
-Completa las oraciones escribiendo la palabra correcta antes de que la frase salga de la pantalla.
+## 🔒 Seguridad
 
-### 🕹️ Controles
-- **Teclado**: Escribe la palabra faltante
-- **Backspace**: Borra caracteres
-- **ESC**: Salir del juego
+Es un juego local sin red, sin cuentas ni datos personales; no maneja secretos.
 
-### 📋 Reglas del juego
+## 🚧 Lo que todavía no existe
 
-1. 📝 **Aparecerá una frase con una palabra faltante** (marcada con "_")
-2. ⌨️ **Escribe la palabra correcta** para ganar puntos
-3. 📈 **A medida que aumenta tu puntuación**, aparecerán más frases simultáneamente
-4. ⚡ **La velocidad aumenta** progresivamente con tu puntaje
-5. 🚫 **No se permiten contracciones** (usa la forma completa)
-6. ❤️ **Pierdes una vida** por cada frase que no completes
-7. 💀 **El juego termina** cuando te quedas sin vidas
+- **Portabilidad**: la ruta de recursos (`"Grammar Adventure\Material"`) usa una barra invertida; en Linux/macOS los recursos no se encuentran. Python también avisa con `SyntaxWarning` por la secuencia `\M`.
+- Debe ejecutarse desde la raíz del repo; en otro directorio falla al cargar fuentes/recursos.
+- Sin guardado de récords ni puntuación máxima, sin multijugador, sin selección de dificultad.
+- La respuesta debe coincidir exactamente: no acepta contracciones ni variantes válidas (p. ej. `won't`; hay que escribir `will not`).
+- `ESC` no cierra el programa: termina la partida y lleva a "Game Over!", tras una espera fija de 6 s.
+- Al quedarse sin vidas hay una pausa bloqueante de 4 s antes de la pantalla de fin; el juego no responde durante ese tiempo.
+- Los botones de la interfaz están en inglés y "Volver" en español; las reglas numeran 1, 2, 3, 5, 6, 7 (falta el 4).
+- Recursos duplicados (`Material/` y `Grammar Adventure/Material/`, más `Grammar Adventure.py` dos veces) y archivos sin uso (`mascota1-4.png`, `FondoPerfect.wav`, `pixel wood sign.avif`, `tempCodeRunnerFile.py`): el repo pesa ~100 MB, casi todo audio `.wav` sin comprimir.
+- Sin tests, sin `requirements.txt`, sin CI, sin empaquetado (`.exe`).
+- El README anterior mostraba una lista de "capturas" sin imágenes y decía que `ESC` "sale del juego"; ambas cosas se corrigieron aquí.
 
-## 📚 Temas Disponibles
+## 📄 Licencia
 
-<details>
-<summary><strong>🕐 Simple Past (Pasado Simple)</strong></summary>
-
-- **Enfoque**: Verbos regulares e irregulares en pasado
-- **Ejemplos**: 
-  - "She _ the tree (climb)" → "climbed"
-  - "Mary _ off the tree (fall)" → "fell"
-- **Dificultad**: ⭐⭐☆☆☆
-</details>
-
-<details>
-<summary><strong>📊 Comparatives and Superlatives (Comparativos y Superlativos)</strong></summary>
-
-- **Enfoque**: Formas comparativas y superlativas de adjetivos
-- **Ejemplos**: 
-  - "La Paz is _ _ Santa Cruz (cold)" → "colder than"
-  - "Mt. Everest is _ _ mountain in the world (tall)" → "the tallest"
-- **Dificultad**: ⭐⭐⭐☆☆
-</details>
-
-<details>
-<summary><strong>✅ Present Perfect (Presente Perfecto)</strong></summary>
-
-- **Enfoque**: Estructura have/has + participio pasado
-- **Ejemplos**: 
-  - "She _ _ to the movies (go)" → "has gone"
-  - "I _ _ living in Bolivia this year (be)" → "have been"
-- **Dificultad**: ⭐⭐⭐⭐☆
-</details>
-
-<details>
-<summary><strong>🔮 Future with will / going to (Futuro)</strong></summary>
-
-- **Enfoque**: Expresiones de futuro con "will" y "going to"
-- **Ejemplos**: 
-  - "I _ _ _ to Bolivia next year (won't/go)" → "will not go"
-  - "She is _ _ _ a new business (go/start)" → "going to start"
-- **Dificultad**: ⭐⭐⭐⭐⭐
-</details>
-
-## 🎨 Capturas de Pantalla
+[MIT](LICENSE) — © 2026 Luis Rocha.
 
 <div align="center">
-
-### 🏠 Menú Principal
-*Interfaz de inicio con animación del logo*
-
-### 📖 Pantalla de Reglas
-*Explicación visual de las mecánicas del juego*
-
-### 🎯 Gameplay
-*Acción en tiempo real con múltiples frases*
-
-### 📊 Selección de Capítulos
-*Elige tu tema de gramática favorito*
-
-</div>
-
-## 🛠️ Desarrollo
-
-### 🔧 Tecnologías utilizadas
-
-- **Python 3.8+**: Lenguaje de programación principal
-- **Pygame 2.0+**: Framework para desarrollo de juegos 2D
-- **Pixel Art**: Estilo gráfico retro
-
-### 🏗️ Arquitectura del código
-
-```python
-# Estructura principal
-├── Inicialización (pygame, mixer, display)
-├── Configuración de recursos (sonidos, imágenes, fuentes)
-├── Sistema de temas y frases
-├── Funciones principales:
-│   ├── ventana_principal()      # Menú de inicio
-│   ├── mostrar_reglas()         # Pantalla de instrucciones
-│   ├── menu_niveles()           # Selección de capítulos
-│   ├── bucle_juego()            # Loop principal del juego
-│   ├── nueva_frase()            # Generador de contenido
-│   └── game_over()              # Pantalla final
-```
-
-### 🎮 Mecánicas del juego
-
-- **Sistema de puntuación**: +1 punto por respuesta correcta
-- **Sistema de vidas**: 3 vidas iniciales, -1 por frase perdida
-- **Velocidad dinámica**: `velocidad = 0.4 + (puntuacion/50)`
-- **Frases simultáneas**: `cantidad = (puntuacion // 8) + 1`
-- **Colores aleatorios**: Cada frase tiene un color único
-
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! Si deseas mejorar el juego:
-
-1. 🍴 Fork el proyecto
-2. 🌱 Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. 📤 Push a la rama (`git push origin feature/AmazingFeature`)
-5. 🔄 Abre un Pull Request
-
-### 💡 Ideas para contribuir
-
-- [ ] Agregar más temas de gramática
-- [ ] Implementar sistema de puntuación máxima
-- [ ] Añadir modo multijugador
-- [ ] Crear sistema de logros
-- [ ] Mejorar efectos visuales
-- [ ] Traducir a otros idiomas
-
-## 📝 License
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
-
-## 👥 Autores
-
-- **Tu Nombre** - *Desarrollo inicial* - [Tu GitHub](https://github.com/tu-usuario)
-
-## 🙏 Agradecimientos
-
-- 🎨 Recursos gráficos en estilo pixel art
-- 🎵 Efectos de sonido para una experiencia inmersiva
-- 📚 Contenido educativo de gramática inglesa
-- 🎮 Comunidad de Pygame por el framework
-
----
-
-<div align="center">
-
-**¿Te gustó el proyecto? ¡Dale una ⭐ estrella!**
-
-[🐛 Reportar Bug](https://github.com/tu-usuario/grammar-adventure/issues) • [💡 Solicitar Feature](https://github.com/tu-usuario/grammar-adventure/issues) • [💬 Discusiones](https://github.com/tu-usuario/grammar-adventure/discussions)
-
-**¡Aprende gramática inglesa jugando! 🎓🎮**
-
+  <sub>Hecho por Luiss2080 · Python + pygame</sub>
 </div>
